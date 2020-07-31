@@ -14,32 +14,38 @@ const logger = winston.createLogger({
 const MAPURL = 'https://goo.gl/maps/a1jXFbfcmBhGSLU97'; // 沐光良食
 
 const parse = async (page: puppeteer.Page) => {
-  const reviews: puppeteer.ElementHandle[] = await page.$$eval(
+  const reviewElements: puppeteer.ElementHandle[] = await page.$$(
     '.ml-reviews-page-user-review-container',
-    (rs) =>
-      rs.map((r) =>
-        JSON.stringify({
-          name: r.querySelector('.ml-reviews-page-user-review-name')
-            .textContent,
-          time: r.querySelector('.ml-reviews-page-user-review-publish-date')
-            .textContent,
-          rating: r.querySelector('.ml-rating-stars-container').textContent,
-          content: r.querySelector('.ml-reviews-page-user-review-text')
-            .textContent,
-        }),
-      ),
   );
-  logger.info(reviews);
+  const tasks = reviewElements.map(async (review) => ({
+    name: await review
+      .$('.ml-reviews-page-user-review-name')
+      .then((el) => el.getProperty('textContent'))
+      .then((jsObject) => jsObject.jsonValue()),
+    time: await review
+      .$('.ml-reviews-page-user-review-publish-date')
+      .then((el) => el.getProperty('textContent'))
+      .then((jsObject) => jsObject.jsonValue()),
+    rating: await review
+      .$('.ml-rating-stars-container')
+      .then((el) => el.getProperty('ariaLabel'))
+      .then((jsObject) => jsObject.jsonValue()),
+    text: await review
+      .$('.ml-reviews-page-user-review-text')
+      .then((el) => el.getProperty('textContent'))
+      .then((jsObject) => jsObject.jsonValue()),
+  }));
+  const reviews = await Promise.all(tasks);
+  logger.info(JSON.stringify(reviews));
 };
 
 (async () => {
   const browser = await puppeteer.launch({
-    headless: false,
-    devtools: true,
+    // headless: false,
+    // devtools: true,
   });
   const page = (await browser.pages())[0];
   await page.emulate(puppeteer.devices['iPhone 6']);
-  // await page.goto('https://goo.gl/maps/eGBbczWuNGQc5SDu5'); // 隨義坊
   await page.goto(MAPURL);
   await page.waitForNavigation();
 
@@ -69,6 +75,7 @@ const parse = async (page: puppeteer.Page) => {
     logger.info(`previous height: ${tempHeight}`);
     logger.info(`current height: ${boxHeight}`);
   } while (tempHeight !== boxHeight);
+
   await parse(page);
   await browser.close();
 })();
