@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "removeComments": true,
+    "outDir": "./dist",
+    "lib": ["ES2018", "DOM"]
+  },
+  "compileOnSave": true
+}
