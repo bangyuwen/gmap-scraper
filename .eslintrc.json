@@ -14,5 +14,8 @@
   },
   "parser": "@typescript-eslint/parser",
   "plugins": ["@typescript-eslint"],
-  "rules": {}
+  "rules": {
+    "implicit-arrow-linebreak": "off",
+    "function-paren-newline": "off"
+  }
 }
