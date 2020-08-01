@@ -2,6 +2,8 @@
 
 import * as puppeteer from 'puppeteer';
 import * as winston from 'winston';
+import * as moment from 'moment';
+import * as fs from 'fs';
 
 const logger = winston.createLogger({
   level: 'info',
@@ -9,9 +11,8 @@ const logger = winston.createLogger({
   transports: [new winston.transports.Console()],
 });
 
-// const MAPURL = 'https://goo.gl/maps/eRkY297cRburaFAs8'; // 湖水灣
-// const MAPURL = 'https://goo.gl/maps/B58qq7QoojvoE11Q6'; // 約翰紅茶
-const MAPURL = 'https://goo.gl/maps/a1jXFbfcmBhGSLU97'; // 沐光良食
+const store = process.env.STORE;
+const url = process.env.URL;
 
 const parse = async (page: puppeteer.Page) => {
   const reviewElements: puppeteer.ElementHandle[] = await page.$$(
@@ -36,17 +37,27 @@ const parse = async (page: puppeteer.Page) => {
       .then((jsObject) => jsObject.jsonValue()),
   }));
   const reviews = await Promise.all(tasks);
-  logger.info(JSON.stringify(reviews));
+
+  const date = moment().format('YYYY-MM-DD');
+  fs.writeFile(
+    `/root/data/${store}-${date}.json`,
+    JSON.stringify(reviews, null, 2),
+    (err) => {
+      if (err) throw err;
+      logger.info('Done writing');
+    },
+  );
 };
 
 (async () => {
   const browser = await puppeteer.launch({
     // headless: false,
     // devtools: true,
+    args: ['--no-sandbox'],
   });
   const page = (await browser.pages())[0];
   await page.emulate(puppeteer.devices['iPhone 6']);
-  await page.goto(MAPURL);
+  await page.goto(url);
   await page.waitForNavigation();
 
   await page.click(
@@ -72,8 +83,8 @@ const parse = async (page: puppeteer.Page) => {
     await page.waitFor(1000);
 
     boxHeight = box.height;
-    logger.info(`previous height: ${tempHeight}`);
-    logger.info(`current height: ${boxHeight}`);
+    logger.debug(`previous height: ${tempHeight}`);
+    logger.debug(`current height: ${boxHeight}`);
   } while (tempHeight !== boxHeight);
 
   await parse(page);

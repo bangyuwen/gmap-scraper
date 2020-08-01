@@ -1,0 +1,15 @@
+version: "3.3"
+services:
+  scrapper:
+    build:
+      context: .
+    image: fooder/scrapper-gmap:exec
+    volumes:
+      - ./data:/root/data
+    environment:
+      # STORE: 沐光良食
+      # URL: https://goo.gl/maps/a1jXFbfcmBhGSLU97
+      # STORE: 湖水灣
+      # URL: https://goo.gl/maps/eRkY297cRburaFAs8
+      STORE: 約翰紅茶
+      URL: https://goo.gl/maps/B58qq7QoojvoE11Q6
