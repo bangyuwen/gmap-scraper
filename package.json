@@ -4,7 +4,7 @@
   "description": "The boilerplate for puppteer that I used to",
   "main": "index.js",
   "dependencies": {
-    "moment": "^2.27.0",
+    "moment": "^2.29.2",
     "puppeteer": "^5.2.1",
     "winston": "^3.3.3"
   },
